@@ -10,18 +10,13 @@ To setup your development environments, run the commands below.
 
 ```bash
 # Ubuntu/Debian
-sudo apt update && sudo apt install -y pipx
+sudo apt update && sudo apt install -y python3-venv pipx
 # RedHat
-sudo dnf install -y pipx
+sudo dnf install -y python3-venv pipx
 
 # Python packages
 pipx install --include-deps ansible-dev-tools
-pipx inject --include-apps --include-deps ansible-dev-tools \
-  argcomplete \
-  'docker>=7.1.0' \
-  'molecule<25.2.0' \
-  'molecule-plugins[docker]==23.5.0' \
-  'requests==2.31.0'
+pipx inject --include-apps --include-deps ansible-dev-tools $(cat requirements.txt)
 
 pipx ensurepath
 source ~/.bashrc

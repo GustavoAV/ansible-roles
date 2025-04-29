@@ -1,0 +1,51 @@
+name: CI
+on:
+  # trunk-ignore(yamllint/empty-values)
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: read-all
+
+jobs:
+  filter_roles:
+    runs-on: ubuntu-latest
+    outputs:
+      changed_roles: ${{ steps.detect_changes.outputs.changed_roles }}
+    steps:
+      - name: Checkout the codebase
+        uses: actions/checkout@v4
+
+      - name: Detect changed roles
+        id: detect_changes
+        run: |
+          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          roles=$(echo "$changed_files" | grep -oE '^[^/]+(?=/)' | sort -u | jq -R -s -c 'split("\n")[:-1]')
+          echo "Changed roles: $roles"
+          echo "changed_roles=$roles" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: filter_roles
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        role: ${{ fromJson(needs.filter_roles.outputs.changed_roles) }}
+    steps:
+      - name: Checkout the codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install Python packages
+        run: |
+          pipx install --include-deps ansible-dev-tools
+          pipx inject --include-apps --include-deps ansible-dev-tools $(cat requirements.txt)
+
+      - name: Run Molecule tests
+        run: |
+          cd ${{ matrix.role }}/
+          molecule test

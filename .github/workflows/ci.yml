@@ -17,12 +17,10 @@ jobs:
       - name: List Ansible roles
         id: set-matrix
         run: |
-          echo "Finding roles in roles/..."
-          roles=$(find roles -maxdepth 1 -mindepth 1 -type d -printf '%f,')
-          # Trim trailing comma
-          roles=${roles%,}
-          # Construct JSON for matrix
-          matrix=$(jq -n --arg rs "$roles" '{role: ($rs | split(","))}')
+          # Gather role directory names
+          roles_json=$(find roles -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | jq -R . | jq -s .)
+          # Build a compact JSON matrix
+          matrix=$(jq -c -n --argjson rs "$roles_json" '{role: $rs}')
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
     outputs:
       changed_roles: ${{ steps.set-matrix.outputs.matrix }}

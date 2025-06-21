@@ -8,28 +8,30 @@ on:
 permissions: read-all
 
 jobs:
-  filter_roles:
+  generate-matrix:
     runs-on: ubuntu-latest
-    outputs:
-      changed_roles: ${{ steps.detect_changes.outputs.changed_roles }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4
-
-      - name: Detect changed roles
-        id: detect_changes
+      
+      - name: List Ansible roles
+        id: set-matrix
         run: |
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          roles=$(echo "$changed_files" | grep -oE '^[^/]+(?=/)' | sort -u | jq -R -s -c 'split("\n")[:-1]')
-          echo "Changed roles: $roles"
-          echo "changed_roles=$roles" >> "$GITHUB_OUTPUT"
+          echo "Finding roles in roles/..."
+          roles=$(find roles -maxdepth 1 -mindepth 1 -type d -printf '%f,')
+          # Trim trailing comma
+          roles=${roles%,}
+          # Construct JSON for matrix
+          matrix=$(jq -n --arg rs "$roles" '{role: ($rs | split(","))}')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+    outputs:
+      changed_roles: ${{ steps.set-matrix.outputs.matrix }}
 
   test:
-    needs: filter_roles
+    needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        role: ${{ fromJson(needs.filter_roles.outputs.changed_roles) }}
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4
@@ -43,7 +45,7 @@ jobs:
       - name: Install Python packages
         run: |
           pipx install --include-deps ansible-dev-tools
-          pipx inject --include-apps --include-deps ansible-dev-tools $(cat requirements.txt)
+          pipx inject --include-apps --include-deps ansible-dev-tools $(cat dev-requirements.txt)
 
       - name: Run Molecule tests
         run: |

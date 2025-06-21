@@ -1,3 +1,4 @@
+ansible
 argcomplete
 docker>=7.1.0
 molecule<25.2.0

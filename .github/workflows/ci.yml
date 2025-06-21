@@ -8,32 +8,34 @@ on:
 permissions: read-all
 
 jobs:
-  filter_roles:
+  generate-matrix:
     runs-on: ubuntu-latest
     outputs:
-      changed_roles: ${{ steps.detect_changes.outputs.changed_roles }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4
-
-      - name: Detect changed roles
-        id: detect_changes
+      
+      - name: List Ansible roles
+        id: set-matrix
         run: |
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          roles=$(echo "$changed_files" | grep -oE '^[^/]+(?=/)' | sort -u | jq -R -s -c 'split("\n")[:-1]')
-          echo "Changed roles: $roles"
-          echo "changed_roles=$roles" >> "$GITHUB_OUTPUT"
+          # Gather role directory names
+          roles_json=$(find roles -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | jq -R . | jq -s .)
+          # Build a compact JSON matrix
+          matrix=$(jq -c -n --argjson rs "$roles_json" '{role: $rs}')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   test:
-    needs: filter_roles
+    needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        role: ${{ fromJson(needs.filter_roles.outputs.changed_roles) }}
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4
 
+      # Fails without "requirements.txt" for some reason
+      # https://github.com/marketplace/actions/build-and-setup-python#no-file-in--matched-to-requirementstxt-or-pyprojecttoml-make-sure-you-have-checked-out-the-target-repository
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -41,11 +43,11 @@ jobs:
           cache: pip
 
       - name: Install Python packages
-        run: |
-          pipx install --include-deps ansible-dev-tools
-          pipx inject --include-apps --include-deps ansible-dev-tools $(cat requirements.txt)
+        run: pip install -r requirements.txt
 
       - name: Run Molecule tests
-        run: |
-          cd ${{ matrix.role }}/
-          molecule test
+        run: cd roles/${{ matrix.role }}/ && molecule test
+        env:
+          # Enable colors in CI logs
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'

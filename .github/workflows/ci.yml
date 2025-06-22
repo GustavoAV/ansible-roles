@@ -13,23 +13,38 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout the codebase
+      - name: Checkout the codebase (full history)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
-      - name: List Ansible roles
+      - name: Determine changed roles
         id: set-matrix
         run: |
-          # Gather role directory names
-          roles_json=$(find roles -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | jq -R . | jq -s .)
-          # Build a compact JSON matrix
-          matrix=$(jq -c -n --argjson rs "$roles_json" '{role: $rs}')
-          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            range="origin/${{ github.event.pull_request.base.ref }}...${{ github.sha }}"
+            git fetch origin ${{ github.event.pull_request.base.ref }}
+          else
+            range="${{ github.event.before }}...${{ github.sha }}"
+          fi
 
+          changed=$(git diff --name-only $range | grep -E '^roles/[^/]+' | cut -d/ -f2 | sort -u)
+
+          # Assembles JSON array, e.g: ["docker","test"]
+          if [ -z "$changed" ]; then
+            roles_json='[]'
+          else
+            roles_json=$(printf '%s\n' $changed | jq -R . | jq -s .)
+          fi
+
+          echo "changed_roles=$roles_json" >> $GITHUB_OUTPUT
+  
   test:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      matrix:
+        roles: ${{ fromJson(needs.generate-matrix.outputs.changed_roles) }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4

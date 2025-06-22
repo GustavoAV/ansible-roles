@@ -30,5 +30,9 @@ platforms:
     pre_build_image: true
 provisioner:
   name: ansible
+  config_options:
+    defaults:
+      # Avoids "sudo" problem in rl9
+      remote_user: root
   playbooks:
     converge: ${MOLECULE_PLAYBOOK:-converge.yml}

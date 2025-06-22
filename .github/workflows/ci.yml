@@ -21,7 +21,6 @@ jobs:
       - name: Determine changed roles
         id: set-matrix
         run: |
-          set -euxo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             range="origin/${{ github.event.pull_request.base.ref }}...${{ github.sha }}"
             git fetch origin ${{ github.event.pull_request.base.ref }}
@@ -45,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        roles: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+        role: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4

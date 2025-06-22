@@ -18,15 +18,14 @@
     group: root
     state: directory
 
-- name: Check if docker.gpg already exists
-  ansible.builtin.stat:
-    path: "{{ docker_apt_gpg_file }}"
-  register: docker_gpg_file
-
-- name: Run tasks if docker.gpg is absent
-  ansible.builtin.include_tasks:
-    file: gpg_setup.yml
-  when: not docker_gpg_file.stat.exists
+# trunk-ignore(checkov/CKV2_ANSIBLE_2)
+- name: Add docker repo gpg key
+  ansible.builtin.get_url:
+    url: "{{ docker_base_linux_url }}/ubuntu/gpg"
+    dest: "{{ docker_apt_gpg_file }}"
+    mode: "0644"
+    owner: root
+    group: root
 
 - name: Get machine architecture
   ansible.builtin.command:

@@ -38,14 +38,14 @@ jobs:
             roles_json=$(printf '%s\n' $changed | jq --raw-input . | jq --compact-output --slurp .)
           fi
 
-          echo "changed_roles=$roles_json" >> $GITHUB_OUTPUT
+          echo "matrix=$roles_json" >> $GITHUB_OUTPUT
   
   test:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        roles: ${{ fromJson(needs.generate-matrix.outputs.changed_roles) }}
+        roles: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - name: Checkout the codebase
         uses: actions/checkout@v4

@@ -34,7 +34,7 @@ jobs:
           if [ -z "$changed" ]; then
             roles_json='[]'
           else
-            roles_json=$(printf '%s\n' $changed | jq -R . | jq -s .)
+            roles_json=$(printf '%s\n' $changed | jq --raw-input . | jq --compact-output --slurp .)
           fi
 
           echo "changed_roles=$roles_json" >> $GITHUB_OUTPUT

@@ -1,5 +1,5 @@
 ---
-docker_apt_gpg_file: /etc/apt/keyrings/docker.gpg
+docker_apt_gpg_file: /etc/apt/keyrings/docker.asc
 docker_base_linux_url: https://download.docker.com/linux
 
 docker_debian_deps:

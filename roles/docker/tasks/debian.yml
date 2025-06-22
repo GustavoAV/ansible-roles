@@ -36,13 +36,7 @@
 # Gets the proper codename even when running on Ubuntu based (e.g. Linux Mint)
 - name: Gets distro codename
   ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      (
-        grep 'UBUNTU_CODENAME=' /etc/os-release || \
-        grep 'VERSION_CODENAME=' /etc/os-release
-      ) | cut -d= -f2
-    executable: /bin/bash
+    cmd: . /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}"
   changed_when: false
   register: docker_distro_codename
 
@@ -52,6 +46,7 @@
       [arch={{ docker_dpkg_arch.stdout }} signed-by={{ docker_apt_gpg_file }}]
       {{ docker_base_linux_url }}/ubuntu {{ docker_distro_codename }} stable"
     state: present
+  diff: true
   notify: Update apt cache
 
 - name: Apply handlers

@@ -44,7 +44,7 @@
   ansible.builtin.apt_repository:
     repo: "deb
       [arch={{ docker_dpkg_arch.stdout }} signed-by={{ docker_apt_gpg_file }}]
-      {{ docker_base_linux_url }}/ubuntu {{ docker_distro_codename }} stable"
+      {{ docker_base_linux_url }}/ubuntu {{ docker_distro_codename.stdout }} stable"
     state: present
   diff: true
   notify: Update apt cache

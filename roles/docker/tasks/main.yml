@@ -8,10 +8,11 @@
     name: "{{ docker_pkg_list }}"
     state: present
 
-- name: Start Docker service
+- name: Start and enable Docker service
   ansible.builtin.service:
     name: docker
     state: started
+    enabled: true
 
 - name: Create docker group
   ansible.builtin.group:

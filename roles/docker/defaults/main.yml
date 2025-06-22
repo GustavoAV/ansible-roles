@@ -5,7 +5,6 @@ docker_base_linux_url: https://download.docker.com/linux
 docker_debian_deps:
   - ca-certificates
   - curl
-  - gnupg
 
 docker_debian_old_pkgs:
   - docker.io
@@ -33,3 +32,12 @@ docker_pkg_list:
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
+
+docker_daemon_json: |
+  {
+    "log-driver": "local",
+    "log-opts": {
+      "max-size": "10m",
+      "max-file": "3"
+    }
+  }

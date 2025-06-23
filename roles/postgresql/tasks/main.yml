@@ -1,0 +1,13 @@
+---
+- name: Include OS specific tasks
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_os_family | lower }}.yml"
+
+- name: Start and enable postgresql
+  ansible.builtin.service:
+    name: "{{ postgresql_service_name }}"
+    state: started
+    enabled: true
+
+- name: Apply notified handlers
+  ansible.builtin.meta: flush_handlers

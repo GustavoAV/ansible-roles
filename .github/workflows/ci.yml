@@ -1,6 +1,5 @@
 name: CI
 on:
-  # trunk-ignore(yamllint/empty-values)
   pull_request:
   push:
     branches: [main]
@@ -17,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Determine changed roles
         id: set-matrix
         run: |
@@ -39,9 +38,34 @@ jobs:
           fi
 
           echo "matrix=$roles_json" >> $GITHUB_OUTPUT
-  
-  test:
+
+  lint:
     needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        role: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout the codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install lint dependencies
+        run: pip install ansible-lint yamllint
+
+      - name: Run yamllint
+        run: yamllint roles/${{ matrix.role }}/
+
+      - name: Run ansible-lint
+        run: ansible-lint --force-color roles/${{ matrix.role }}/
+
+  molecule:
+    needs: [generate-matrix, lint]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -62,9 +86,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run Molecule tests
-        run: |
-          cd roles/${{ matrix.role }}/
-          molecule test
+        run: cd roles/${{ matrix.role }}/ && molecule test
         env:
           # Enable colors in CI logs
           PY_COLORS: '1'

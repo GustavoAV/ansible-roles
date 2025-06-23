@@ -1,11 +1,21 @@
 ---
-docker_apt_gpg_file: /etc/apt/keyrings/docker.asc
+# Docker repo base download url
 docker_base_linux_url: https://download.docker.com/linux
 
+# Gpg repo key file
+docker_apt_gpg_file: /etc/apt/keyrings/docker.asc
+
+# Apt repository full string
+docker_apt_repo_string: >
+  deb [arch={{ docker_dpkg_arch.stdout }} signed-by={{ docker_apt_gpg_file }}]
+  {{ docker_base_linux_url }}/ubuntu {{ docker_distro_codename.stdout }} stable
+
+# Debian/Ubuntu dependencies
 docker_debian_deps:
   - ca-certificates
   - curl
 
+# Debian/Ubuntu old packages (will be removed)
 docker_debian_old_pkgs:
   - docker.io
   - docker-compose
@@ -14,6 +24,7 @@ docker_debian_old_pkgs:
   - containerd
   - runc
 
+# RedHat Docker old packages (will be removed)
 docker_redhat_old_pkgs:
   - docker
   - docker-client
@@ -26,13 +37,16 @@ docker_redhat_old_pkgs:
   - podman
   - runc
 
-docker_pkg_list:
+# Docker packages to install
+docker_install_pkgs:
   - docker-ce
   - docker-ce-cli
   - containerd.io
   - docker-buildx-plugin
   - docker-compose-plugin
 
+# Daemon Config Json
+# https://docs.docker.com/reference/cli/dockerd/#daemon-configuration-file
 docker_daemon_json: |
   {
     "log-driver": "local",

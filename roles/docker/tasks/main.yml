@@ -5,7 +5,7 @@
 
 - name: Install Docker and Docker Compose
   ansible.builtin.package:
-    name: "{{ docker_pkg_list }}"
+    name: "{{ docker_install_pkgs }}"
     state: present
 
 - name: Start and enable Docker service
@@ -34,6 +34,7 @@
     mode: "0644"
     backup: true
     validate: dockerd --config-file=%s --validate
+  diff: true
   notify: Restart docker daemon
 
 - name: Apply notified handlers

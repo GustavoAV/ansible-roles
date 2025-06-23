@@ -18,7 +18,6 @@
     group: root
     state: directory
 
-# trunk-ignore(checkov/CKV2_ANSIBLE_2)
 - name: Add docker repo gpg key
   ansible.builtin.get_url:
     url: "{{ docker_base_linux_url }}/ubuntu/gpg"

@@ -1,4 +1,3 @@
-# trunk-ignore-all(checkov/CKV2_ANSIBLE_2)
 ---
 - name: Uninstall old Docker packages
   ansible.builtin.dnf:

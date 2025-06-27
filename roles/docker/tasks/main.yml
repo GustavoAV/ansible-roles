@@ -8,12 +8,6 @@
     name: "{{ docker_install_pkgs }}"
     state: present
 
-- name: Start and enable Docker service
-  ansible.builtin.service:
-    name: docker
-    state: started
-    enabled: true
-
 - name: Create docker group
   ansible.builtin.group:
     name: docker
@@ -36,6 +30,12 @@
     validate: dockerd --config-file=%s --validate
   diff: true
   notify: Restart docker daemon
+
+- name: Start and enable Docker service
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
 
 - name: Apply notified handlers
   ansible.builtin.meta: flush_handlers

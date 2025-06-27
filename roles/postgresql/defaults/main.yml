@@ -1,7 +1,9 @@
 ---
 postgresql_version: 17
 
-postgresql_apt_dependencies: [curl, ca-certificates]
+postgresql_apt_dependencies:
+  - curl
+  - ca-certificates
 
 postgresql_apt_keyring_file_path: /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
 
@@ -13,7 +15,8 @@ postgresql_apt_repo_string: >
 
 postgresql_apt_install_pkgs: postgresql-{{ postgresql_version }}
 
-postgresql_dnf_dependencies: [gnupg2]
+postgresql_dnf_dependencies:
+  - gnupg2
 
 postgresql_dnf_repo_key_url: https://download.postgresql.org/pub/repos/yum/keys/PGDG-RPM-GPG-KEY-RHEL
 

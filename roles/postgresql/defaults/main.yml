@@ -30,3 +30,5 @@ postgresql_service_name: >-
   {%- else -%}
     postgresql
   {%- endif -%}
+
+postgresql_readiness_cmd: pg_isready -U postgresql -h 127.0.0.1 -p 5432

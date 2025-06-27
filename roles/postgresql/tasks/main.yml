@@ -11,3 +11,13 @@
 
 - name: Apply notified handlers
   ansible.builtin.meta: flush_handlers
+
+- name: Awaits postgresql availability
+  ansible.builtin.command:
+    cmd: "{{ postgresql_readiness_cmd }}"
+  register: postgresql_status
+  delay: 10
+  retries: 5
+  until: postgresql_status.rc == 0
+  changed_when: false
+  failed_when: postgresql_status.rc != 0 and postgresql_status.rc != 2
